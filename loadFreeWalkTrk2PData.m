@@ -7,6 +7,8 @@
 %
 % Modified version of loadTrk2PData (from tethered fly tracking)
 %
+% NOTE: 
+%
 % INPUTS:
 %   pDataPath - full path to folder containing pData files
 %   trkFilePath - full path to all .trk files
@@ -21,10 +23,10 @@
 % OUTPUTS:
 %   none, but saves processed .trk data into pData file
 %
-% CREATED: 5/10/22
+% CREATED: 4/8/23 - HHY
 %
 % UPDATED:
-%   5/10/22
+%   4/9/23 - HHY
 %
 function loadFreeWalkTrk2PData(pDataPath, trkFilePath, trkSuffix, ...
     refPts, smoParams)
@@ -40,16 +42,24 @@ function loadFreeWalkTrk2PData(pDataPath, trkFilePath, trkSuffix, ...
         refPts.abdPtInd = 11;
     end
 
+    % constants
+    % conversion between camera pixels and meters
+    imgParams.PX_PER_METER = 37023.1016957; 
+    % number of pixels in x dimension of video frame
+    imgParams.xPx = 658;
+    % number of pixels in y dimension of video frame
+    imgParams.yPx = 494;
+
     % if smoParams not specified, default params
     if (isempty(smoParams))
         % parameters for smoothing for determining leg velocities
         smoParams.padLen = 50; % pad length in samples
-        smoParams.sigma = 10; % in samples
-       % parameters for removing outliers
-       smoParams.medFiltDeg = 5; % degree of median filter
-       % percent of (max-min) is acceptable as deviation
-       smoParams.percntDev = 10; 
-       smoParams.maxMinWin = 1000; % size of window to compute max and min
+        smoParams.sigma = 5; % in samples
+        % parameters for removing outliers
+        smoParams.medFiltDeg = 5; % degree of median filter
+        % percent of (max-min) is acceptable as deviation
+        smoParams.percntDev = 50; 
+        smoParams.maxMinWin = 500; % size of window to compute max and min
     end
 
 
@@ -117,14 +127,12 @@ function loadFreeWalkTrk2PData(pDataPath, trkFilePath, trkSuffix, ...
             % .trk full path
             trkFileFullPath = [trkFilePath filesep matchedTrkFileName];
             
-            % get timing info (bodytraj.tZeroed) and start and end frames
-            t = bodytraj.tZeroed;
-            startFr = bodytraj.cam.startFr;
-            endFr = bodytraj.cam.endFr;
 
             % preprocess .trk data
             legTrack = preprocessFreeWalkLegTrack(trkFileFullPath, ...
-                t, startFr, endFr, refPts, smoParams);
+                bodytraj.tZeroed, bodytraj.cam.startFr, ...
+                bodytraj.cam.endFr, bodytraj.cnc.x, bodytraj.cnc.y, ...
+                refPts, smoParams, imgParams);
 
             % save legTrack struct into pData
             save(pDataFullPath, 'legTrack', '-append'); 

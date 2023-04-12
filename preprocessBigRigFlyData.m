@@ -14,7 +14,10 @@
 %  differently on windows)
 % 
 % CREATED: 3/28/23 - HHY
-% UPDATED: 3/28/23 - HHY
+% UPDATED: 
+%   3/28/23 - HHY
+%   4/8/23 - HHY - just realized that cam.txt files changed sometime
+%       between 2018 and 2022
 
 %% paths
 legVidPath = '/Users/hyang/Dropbox (HMS)/FreeWalkLegAnalysis-Helen/mp4Vids';
@@ -86,17 +89,30 @@ for i = 1:length(expts)
             trialDat.cnc.x = cncDat{2};
             trialDat.cnc.y = cncDat{3};
 
-            % read in cam data
-            camFile = fopen('cam.txt');
-            camDat = textscan(camFile, '%f %s %f %f %f %f %f\n', ...
-                'Delimiter', ',', 'HeaderLines', 1);
-            fclose(camFile);
+            % read in cam data - parse differently for old and new data
+            if (contains(thisTrialName,'-2018'))
+                camFile = fopen('cam.txt');
+                camDat = textscan(camFile, '%f %s %f %f %f %f %f\n', ...
+                    'Delimiter', ',', 'HeaderLines', 1);
+                fclose(camFile);
+    
+                trialDat.cam.t = camDat{1};
+                trialDat.cam.flyPresent = strcmpi(camDat{2}, 'True');
+                trialDat.cam.x = camDat{3};
+                trialDat.cam.y = camDat{4};
+                trialDat.cam.ang = camDat{7};
+            elseif (contains(thisTrialName, '-2022'))
+                camFile = fopen('cam.txt');
+                camDat = textscan(camFile, '%f %f %f %f\n',...
+                    'Delimiter', ',', 'HeaderLines', 1);
+                fclose(camFile);
 
-            trialDat.cam.t = camDat{1};
-            trialDat.cam.flyPresent = strcmpi(camDat{2}, 'True');
-            trialDat.cam.x = camDat{3};
-            trialDat.cam.y = camDat{4};
-            trialDat.cam.ang = camDat{7};
+                trialDat.cam.t = camDat{1};
+                trialDat.cam.flyPresent = [];
+                trialDat.cam.x = camDat{2};
+                trialDat.cam.y = camDat{3};
+                trialDat.cam.ang = camDat{4};
+            end
 
             % read in stimulus data if it exists
             if(isfile('stimuli.txt'))
@@ -157,26 +173,26 @@ for i = 1:length(expts)
                 trialDat.opto = [];
             end 
 
-            % call ffmpeg: adjust levels on video, convert to mp4, name
-            %  trial name
-
-            % get full output video path
-            vidPath = ['''' legVidPath filesep thisTrialName '.mp4'''];
-
-            % generate command for creating ffmpeg video 
-            vidCmd = ...
-                sprintf('ffmpeg -i cam_compr.mkv -vf %s -pix_fmt yuv420p -b:v 10000k -c:v h264_videotoolbox %s', ...
-                ffmpegLevels, vidPath);
-            % run command for creating ffmpeg video
-            createVidStatus = system(['export PATH=' binPath ' ; ' vidCmd]);
-        
-            % display whether video file generated successfully
-            if ~(createVidStatus)
-                fprintf('Video for %s created successfully! \n', ...
-                    thisTrialName);
-            else
-                fprintf('Error creating video for %s. \n', thisTrialName);
-            end
+%             % call ffmpeg: adjust levels on video, convert to mp4, name
+%             %  trial name
+% 
+%             % get full output video path
+%             vidPath = ['''' legVidPath filesep thisTrialName '.mp4'''];
+% 
+%             % generate command for creating ffmpeg video 
+%             vidCmd = ...
+%                 sprintf('ffmpeg -i cam_compr.mkv -vf %s -pix_fmt yuv420p -b:v 10000k -c:v h264_videotoolbox %s', ...
+%                 ffmpegLevels, vidPath);
+%             % run command for creating ffmpeg video
+%             createVidStatus = system(['export PATH=' binPath ' ; ' vidCmd]);
+%         
+%             % display whether video file generated successfully
+%             if ~(createVidStatus)
+%                 fprintf('Video for %s created successfully! \n', ...
+%                     thisTrialName);
+%             else
+%                 fprintf('Error creating video for %s. \n', thisTrialName);
+%             end
 
             % save trialDat into pData file
             pDataFullPath = [pDataPath filesep thisTrialName '.mat'];

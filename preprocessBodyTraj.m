@@ -60,6 +60,7 @@
 %
 % UPDATED:
 %   4/3/23 - HHY
+%   4/10/23 - HHY - make sure angles are correct
 %
 function preprocessBodyTraj(pDataPath)
 
@@ -118,7 +119,7 @@ function preprocessBodyTraj(pDataPath)
         % between 2018 and 2022 datasets, eliminate indicator of fly present    
         else
             valStartInd = 1;
-            valEndInd = length(trialDat.cam.flyPresent);
+            valEndInd = length(trialDat.cam.t);
         end
 
             % camera data only for when fly present
@@ -157,39 +158,64 @@ function preprocessBodyTraj(pDataPath)
             bodytraj.cnc.y = interp1(trialDat.cnc.t, trialDat.cnc.y, ...
                 bodytraj.t);
             bodytraj.y = camY + bodytraj.cnc.y;
+            
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% TO DO: FIGURE OUT ANGLES
+% UPDATE 4/11/23 - bug in 2022 data where cam.txt is missing time points
+%   don't bother with angle alignment (but should be leg heading - 90
+%   equals these angles)
+
+            % angles, handled differently b/w 2018 and 2022
+            if(contains(pDataName,'-2018'))
+            % 2018, angles between 0 and 180, in deg    
+
+                % angles only from camera
+                bodytraj.rawAngs = camAng;
                 
-            % angles only from camera
-            bodytraj.rawAngs = camAng;
-            
-            % unwrap angles        
-            jumpThresh = 150;
-            unWrAngs = [];
-            angOffset = 0;
-    
-            for j = 1:length(bodytraj.rawAngs)
-                curAng = bodytraj.rawAngs(j);
-                if (j == 1)
+                % unwrap angles        
+                jumpThresh = 150;
+                unWrAngs = [];
+                angOffset = 0;
+        
+                for j = 1:length(bodytraj.rawAngs)
+                    curAng = bodytraj.rawAngs(j);
+                    if (j == 1)
+                        unWrAngs = [unWrAngs; curAng];
+                        continue;
+                    end
+        
+                    curAng = curAng + angOffset;
+        
+                    if ((unWrAngs(end) - curAng) > jumpThresh)
+                        angOffset = angOffset + 180;
+                        curAng = curAng + 180;
+                    elseif ((curAng - unWrAngs(end)) > jumpThresh)
+                        angOffset = angOffset - 180;
+                        curAng = curAng - 180;
+                    end
+        
                     unWrAngs = [unWrAngs; curAng];
-                    continue;
                 end
-    
-                curAng = curAng + angOffset;
-    
-                if ((unWrAngs(end) - curAng) > jumpThresh)
-                    angOffset = angOffset + 180;
-                    curAng = curAng + 180;
-                elseif ((curAng - unWrAngs(end)) > jumpThresh)
-                    angOffset = angOffset - 180;
-                    curAng = curAng - 180;
-                end
-    
-                unWrAngs = [unWrAngs; curAng];
+                
+                % correct angles from ellipse fitting definition, camera flip
+                unWrAngs = 90 - unWrAngs;
+                unWrAngs = -1 * unWrAngs;
+                
+            elseif(contains(pDataName,'-2022'))
+            % 2022, angles in radians, covers 2pi, but not +/- pi centered
+            %  at 0?
+                bodytraj.rawAngs = rad2deg(camAng);
+
+                % unwrap angles (must be done in radians)
+                unWrAngs = rad2deg(unwrap(camAng));
+
+                % correct angles
+                unWrAngs = 90 - unWrAngs;
+%                 unWrAngs = -1 * unWrAngs;
             end
-            
-            % correct angles from ellipse fitting definition, camera flip
-            unWrAngs = 90 - unWrAngs;
-            unWrAngs = -1 * unWrAngs;
-            
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+
             bodytraj.unWrAng = unWrAngs;
     
             
