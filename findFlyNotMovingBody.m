@@ -51,9 +51,14 @@ function [notMoveInd, notMoveStartInd, notMoveEndInd] = ...
     
     % indicies where fly transitions between moving and not moving
     transInd = find(diff(notMoveLogical)) + 1;
+
+    % if transInd is empty (fly in one state the whole time)
+    if isempty(transInd)
+        % add edges as first and last index
+        transInd = [1 length(notMoveLogical)];
     
     % add edges to transitions, so first and last bouts are included
-    if transInd(end) == length(notMoveLogical)
+    elseif transInd(end) == length(notMoveLogical)
         transInd = [1 transInd];
     else
         transInd = [1 transInd (length(notMoveLogical)+1)];

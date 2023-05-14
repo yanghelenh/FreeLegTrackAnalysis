@@ -61,12 +61,15 @@
 % UPDATED:
 %   4/3/23 - HHY
 %   4/10/23 - HHY - make sure angles are correct
+%   4/16/23 - HHY - fixed bug in indexing into camera frames (before
+%       fixing, mismatch b/w legTrack and bodytraj). Also, update fly not
+%       present to merge over more frames
 %
 function preprocessBodyTraj(pDataPath)
 
     % define constants
     % max number of adjacent fly not present frames to smooth over
-    MAX_FLYPRESENT_FRAMES = 3;
+    MAX_FLYPRESENT_FRAMES = 13;
     % smoothing of fly behavior, window for smoothdata function, 
     %  method gaussian
     SIGMA_MILD = 15; 
@@ -147,8 +150,16 @@ function preprocessBodyTraj(pDataPath)
             camAng = camAng(startCamFr:endCamFr);
 
             % add start and end cam frames to bodytraj struct
-            bodytraj.cam.startFr = startCamFr;
-            bodytraj.cam.endFr = endCamFr;
+            % index into original cam.t vector
+            % corrected 4/16/23
+            startTime = camT(startCamFr);
+            startInd = find(trialDat.cam.t >= startTime, 1, 'first');
+
+            endTime = camT(endCamFr);
+            endInd = find(trialDat.cam.t <= endTime, 1, 'last');
+
+            bodytraj.cam.startFr = startInd;
+            bodytraj.cam.endFr = endInd;
             
             % fly's x, y position is sum of camera and and cnc position
             % interpolate cnc position to same time points as camera

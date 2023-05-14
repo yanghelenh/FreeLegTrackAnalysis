@@ -375,4 +375,6 @@ function extractMoveNotMoveFromPData(pDataPath)
 
     % update pData file
     save(pDataFullPath, 'moveNotMove', '-append');
+
+    fprintf('Saved moveNotMove for %s\n', pDataName);
 end

@@ -35,6 +35,8 @@ function loadFreeWalkTrk2PData(pDataPath, trkFilePath, trkSuffix, ...
     % if refPts not specified, default params
     if (isempty(refPts))
         % indicies for specific body parts
+        refPts.legInd = 1:6;
+        refPts.legNames = {'R1', 'R2', 'R3', 'L1', 'L2', 'L3'};
         refPts.headPtInd = 7;
         refPts.thxRPtInd = 8;
         refPts.thxLPtInd = 9;
