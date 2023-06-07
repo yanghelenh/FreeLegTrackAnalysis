@@ -2,7 +2,7 @@
 %
 % Function that takes output files from saveLegStepParamCond_indpt() and
 %  generates 2 plots: AEP and PEP
-% Either plots mean +/- SEM for each fly or across all flies.
+% Either plots mean +/- std dev for each fly or across all flies.
 % Can select more than 1 output file, will plot on same graph
 % Select output files through GUI
 %
@@ -140,7 +140,7 @@ function plotCondAEPPEP_allFlies(datDir, xyScale, indivFlies)
 
     % x and y labels
     xlabel('Body Lengths <-L - R->');
-    ylabel('Body Lengths')
+    ylabel('Body Lengths <-P - A->')
 
     % reverse y axis (x values) so head (neg vals) is at top
     set(gca, 'YDir','reverse');

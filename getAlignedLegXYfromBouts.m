@@ -25,7 +25,7 @@
 % CREATED: 5/12/23 - HHY
 %
 % UPDATED:
-%   5/12/23 - HHY
+%   5/14/23 - HHY
 %
 function [boutLegX, boutLegY, t] = getAlignedLegXYfromBouts(legTrack, ...
     legXYParams, peakInd, boutStartInd, boutEndInd)
@@ -36,11 +36,13 @@ function [boutLegX, boutLegY, t] = getAlignedLegXYfromBouts(legTrack, ...
     % number of bouts
     numBouts = length(peakInd);
     % number of tracked pts
-    numTrkPts = legTrack.numPoints;
+    numLegs = length(legTrack.refPts.legInd);
+    % interframe interval, for interpolation
+    ifi = 1/legXYParams.interpFrameRate;
 
     % preallocate
-    boutLegX = nan(maxNumFrames * 2 + 1, numTrkPts, numBouts);
-    boutLegY = nan(maxNumFrames * 2 + 1, numTrkPts, numBouts);
+    boutLegX = nan(maxNumFrames * 2 + 1, numLegs, numBouts);
+    boutLegY = nan(maxNumFrames * 2 + 1, numLegs, numBouts);
 
 
     % loop through all bouts
@@ -57,7 +59,6 @@ function [boutLegX, boutLegY, t] = getAlignedLegXYfromBouts(legTrack, ...
         % doing it this way keeps 0 at 0
         newTDur = (maxNumFrames / legXYParams.interpFrameRate);
 
-        ifi = 1/legXYParams.interpFrameRate;
 
         newTHalf1 = 0:ifi:newTDur;
         newTHalf1 = fliplr(newTHalf1) * -1;
@@ -67,8 +68,10 @@ function [boutLegX, boutLegY, t] = getAlignedLegXYfromBouts(legTrack, ...
         newT = [newTHalf1 newTHalf2(2:end)];
 
         % get interpolated leg X and Y position
-        interpX = interp1(tOrig, legTrack.srnfLegX, newT,'spline');
-        interpY = interp1(tOrig, legTrack.srnfLegY, newT,'spline');
+        interpX = interp1(tOrig, ...
+            legTrack.srnfLegX(:,legTrack.refPts.legInd), newT,'spline');
+        interpY = interp1(tOrig, ...
+            legTrack.srnfLegY(:,legTrack.refPts.legInd), newT,'spline');
 
         % filter for bout start and end
         boutStartLog = newT < boutStartT;
@@ -82,7 +85,11 @@ function [boutLegX, boutLegY, t] = getAlignedLegXYfromBouts(legTrack, ...
         % add to output matrix
         boutLegX(:,:,i) = interpX;
         boutLegY(:,:,i) = interpY;
-
     end
-    
+
+    % get time vector for output matrix
+    tHalf1 = fliplr((0:maxNumFrames) * ifi * -1);
+    tHalf2 = (1:maxNumFrames) * ifi;
+
+    t = [tHalf1 tHalf2]';    
 end
