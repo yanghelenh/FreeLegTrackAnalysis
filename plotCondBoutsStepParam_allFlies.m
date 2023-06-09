@@ -193,13 +193,14 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
                 end
                 % get std
                 thisStd = rad2deg(circ_std(refParamValRad));
+                % get n
+                thisN = length(refParamValRad);
             else
                 refMeans(j) = mean(rmoutliers(refParamVal(thisLegLog)));
                 thisStd = std(rmoutliers(refParamVal(thisLegLog)));
+                thisN = length(rmoutliers(refParamVal(thisLegLog)));
             end
-    
-            % n for this leg
-            thisN = sum(thisLegLog);
+            
             refN(j) = thisN;
 
             % compute errors

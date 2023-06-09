@@ -22,6 +22,9 @@
 %
 % UPDATED:
 %   5/10/23 - HHY
+%   6/8/23 - HHY - slight bug fix to only invert velocities for left turns
+%       (not speeds)
+%   6/9/23 - HHY 
 %
 function [yawVelPeakInd, boutStartInd, boutEndInd] = findCondYawVelPeaks(...
     bodytraj, cond, moveNotMove, rightTurn)
@@ -61,8 +64,8 @@ function [yawVelPeakInd, boutStartInd, boutEndInd] = findCondYawVelPeaks(...
         if (rightTurn)
             thisCond = bodytraj.(cond.whichParam{i});
         else % left turn
-            if (contains(cond.whichParam{i}, 'ang', 'IgnoreCase',true) || ...
-                    contains(cond.whichParam{i}, 'lat', 'IgnoreCase',true))
+            if (contains(cond.whichParam{i}, 'angVel', 'IgnoreCase',true) || ...
+                    contains(cond.whichParam{i}, 'latVel', 'IgnoreCase',true))
                 thisCond = -1 * bodytraj.(cond.whichParam{i});
             end
         end

@@ -18,6 +18,7 @@
 %
 % UPDATED:
 %   5/9/23 - HHY
+%   6/7/23 - HHY - remove outliers before computing mean and std
 %
 function plotCondAEPPEP_allFlies(datDir, xyScale, indivFlies)
 
@@ -86,15 +87,15 @@ function plotCondAEPPEP_allFlies(datDir, xyScale, indivFlies)
                 thisLeg = legIDs.ind(j);
                 thisLegLog = selStanceParams.stepWhichLeg == thisLeg;
 
-                AEPxMeans(j,i) = mean(selStanceParams.stepAEPX(thisLegLog));
-                AEPyMeans(j,i) = mean(selStanceParams.stepAEPY(thisLegLog));
-                PEPxMeans(j,i) = mean(selStanceParams.stepPEPX(thisLegLog));
-                PEPyMeans(j,i) = mean(selStanceParams.stepPEPY(thisLegLog));
+                AEPxMeans(j,i) = mean(rmoutliers(selStanceParams.stepAEPX(thisLegLog)));
+                AEPyMeans(j,i) = mean(rmoutliers(selStanceParams.stepAEPY(thisLegLog)));
+                PEPxMeans(j,i) = mean(rmoutliers(selStanceParams.stepPEPX(thisLegLog)));
+                PEPyMeans(j,i) = mean(rmoutliers(selStanceParams.stepPEPY(thisLegLog)));
     
-                AEPxSDs(j,i) = std(selStanceParams.stepAEPX(thisLegLog));
-                AEPySDs(j,i) = std(selStanceParams.stepAEPY(thisLegLog));
-                PEPxSDs(j,i) = std(selStanceParams.stepPEPX(thisLegLog));
-                PEPySDs(j,i) = std(selStanceParams.stepPEPY(thisLegLog));
+                AEPxSDs(j,i) = std(rmoutliers(selStanceParams.stepAEPX(thisLegLog)));
+                AEPySDs(j,i) = std(rmoutliers(selStanceParams.stepAEPY(thisLegLog)));
+                PEPxSDs(j,i) = std(rmoutliers(selStanceParams.stepPEPX(thisLegLog)));
+                PEPySDs(j,i) = std(rmoutliers(selStanceParams.stepPEPY(thisLegLog)));
 
                 ns(i,j) = sum(thisLegLog);
             end

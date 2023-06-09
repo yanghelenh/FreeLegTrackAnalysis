@@ -151,7 +151,7 @@ function plotCondBoutsAEPPEP_allFlies(datDir, xyScale, semError, ref)
             refPEPyMeans(j) = mean(rmoutliers(selStanceParams.stepPEPY(thisLegLog)));
     
             % n for this leg
-            thisN = sum(thisLegLog);
+            thisN = length(rmoutliers(selStanceParams.stepAEPX(thisLegLog)));
             refN(j) = thisN;
 
             % compute errors, remove outliers
