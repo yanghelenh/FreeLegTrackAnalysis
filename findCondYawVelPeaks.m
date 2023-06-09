@@ -24,7 +24,7 @@
 %   5/10/23 - HHY
 %   6/8/23 - HHY - slight bug fix to only invert velocities for left turns
 %       (not speeds)
-%   6/9/23 - HHY 
+%   6/9/23 - HHY - update to allow conditioning on bout duration
 %
 function [yawVelPeakInd, boutStartInd, boutEndInd] = findCondYawVelPeaks(...
     bodytraj, cond, moveNotMove, rightTurn)
@@ -157,6 +157,29 @@ function [yawVelPeakInd, boutStartInd, boutEndInd] = findCondYawVelPeaks(...
         pkStartInd = pkStartInd(keepInd);
         pkEndInd = pkEndInd(keepInd);
     end
+
+    % loop through all peaks and check that the bout meets the duration
+    %  requirements
+    % initialize to keep track of peaks to remove
+    rmInd = []; 
+    for i = 1:length(pkInds)
+
+        thisBoutStartT = bodytraj.tZeroed(pkStartInd(i));
+        thisBoutEndT = bodytraj.tZeroed(pkEndInd(i));
+
+        thisBoutDur = thisBoutEndT - thisBoutStartT;
+
+        % if this bout duration is too short or too long, flag this index
+        %  for deletion
+        if((thisBoutDur < cond.turnDur(1)) || ...
+                (thisBoutDur > cond.turnDur(2)))
+            rmInd = [rmInd i];
+        end
+    end
+    % remove any bouts that don't meet the duration criteria
+    pkInds(rmInd) = [];
+    pkStartInd(rmInd) = [];
+    pkEndInd(rmInd) = [];
 
     % outputs
     yawVelPeakInd = pkInds;

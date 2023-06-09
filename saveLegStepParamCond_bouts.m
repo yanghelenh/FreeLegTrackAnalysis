@@ -18,6 +18,9 @@
 %           to condition on, one for each condition
 %       cond - cell array of strings to condition on, for eval(); same size
 %           as whichParam
+%       turnDur - 2 element vector [minTurnDuration maxTurnDuration] to
+%           specify the min and max duration of the turning bout for it to
+%           be included
 %       minYawThresh - minimum yaw velocity to define start and end of bout
 %   maxNumSteps - number of steps to each side of peak to consider as part
 %       of bout (max bout length is this x2 + 1)
@@ -78,6 +81,8 @@
 %   6/6/23 - HHY - update to calculate mean and std appropriately for
 %       stepDirections, which is a circular variable. Also, add outlier
 %       removal before calculating mean and std
+%   6/9/23 - HHY - update to add condition for min and max duration of
+%       turning bout (separate from max number of steps)
 %
 function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
     pDataPath, saveFilePath, saveFileName)
