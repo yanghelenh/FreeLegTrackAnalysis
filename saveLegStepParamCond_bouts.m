@@ -83,6 +83,8 @@
 %       removal before calculating mean and std
 %   6/9/23 - HHY - update to add condition for min and max duration of
 %       turning bout (separate from max number of steps)
+%   6/14/23 - HHY - fix bug where for stepDirections, time points with no
+%       data points returned 0 for the mean and non NaN
 %
 function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
     pDataPath, saveFilePath, saveFileName)
@@ -453,11 +455,18 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
                 thisN = length(thisTandLegs);
                 thisSEM = thisStd / sqrt(thisN);
 
-                % add to output matrices
-                stanceParamMeans.(stepParamNames{i})(j,k) = thisMean;
-                stanceParamStd.(stepParamNames{i})(j,k) = thisStd;
-                stanceParamSEM.(stepParamNames{i})(j,k) = thisSEM;
-                stanceParamN.(stepParamNames{i})(j,k) = thisN;
+                % add to output matrices if there are any data points
+                if (thisN > 0)
+                    stanceParamMeans.(stepParamNames{i})(j,k) = thisMean;
+                    stanceParamStd.(stepParamNames{i})(j,k) = thisStd;
+                    stanceParamSEM.(stepParamNames{i})(j,k) = thisSEM;
+                    stanceParamN.(stepParamNames{i})(j,k) = thisN;
+                else
+                    stanceParamMeans.(stepParamNames{i})(j,k) = nan;
+                    stanceParamStd.(stepParamNames{i})(j,k) = nan;
+                    stanceParamSEM.(stepParamNames{i})(j,k) = nan;
+                    stanceParamN.(stepParamNames{i})(j,k) = thisN;
+                end
             end
         end
 

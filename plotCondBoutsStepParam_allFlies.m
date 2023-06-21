@@ -265,7 +265,7 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
 
             % add n to legendStr
             thisLegendStr = [legendStr{j} '; n = ' ...
-                num2str(numBouts{j}(:,j)')];
+                num2str(numBouts{j}(:,i)')];
 
             % legend depends on if there's reference
             if(ref)
