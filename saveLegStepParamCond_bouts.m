@@ -190,6 +190,8 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
         [leftPeakInd, leftStartInd, leftEndInd] = findCondYawVelPeaks(...
             bodytraj, cond, moveNotMove, false);
 
+        size(leftPeakInd)
+
         % check if this pData file contributes any turns
         % if not, skip and move to next pData file
         if (isempty(rightPeakInd) && isempty(leftPeakInd))
@@ -337,7 +339,7 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
             % concatenate right and left
             oneParamVals = cat(4, oneParamValsRight, oneParamValsLeft);
             oneParamStVals = cat(3, oneParamStValsRight, oneParamStValsLeft);
-            oneParamSwVals = cat(3, oneParamSwValsRight, oneParamSwValsRight);
+            oneParamSwVals = cat(3, oneParamSwValsRight, oneParamSwValsLeft);
 
             % add to output matrices
             selLegSteps.(stepParamNames{j}) = cat(4, ...
@@ -356,7 +358,7 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
         [rightLegX, rightLegY, legT] = getAlignedLegXYfromBouts(legTrack, ...
             legXYParams, rightPeakInd, rightStartInd, rightEndInd);
         % left turns
-        [leftLegX, leftLegY, ~] = getAlignedLegXYfromBouts(legTrack, ...
+        [leftLegX, leftLegY, legT] = getAlignedLegXYfromBouts(legTrack, ...
             legXYParams, leftPeakInd, leftStartInd, leftEndInd);
 
         % flip and invert left turns, but only if there are left turns

@@ -276,7 +276,7 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
         end
 
         % axis scale and label
-        ylim(yScale);
+%         ylim(yScale);
         xScale = xlim;
         xScale(1) = xScale(1) - (0.1 * (stepTPts(end)-stepTPts(1)));
         xScale(2) = xScale(2) + (0.1 * (stepTPts(end)-stepTPts(1)));

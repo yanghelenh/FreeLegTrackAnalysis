@@ -67,6 +67,8 @@ function [yawVelPeakInd, boutStartInd, boutEndInd] = findCondYawVelPeaks(...
             if (contains(cond.whichParam{i}, 'angVel', 'IgnoreCase',true) || ...
                     contains(cond.whichParam{i}, 'latVel', 'IgnoreCase',true))
                 thisCond = -1 * bodytraj.(cond.whichParam{i});
+            else
+                thisCond = bodytraj.(cond.whichParam{i});
             end
         end
          

@@ -28,6 +28,7 @@
 %
 % UPDATED:
 %   4/12/23 - HHY
+%   6/21/23 - HHY - break out main part of function into helper function 
 % 
 function [maxIndsAll, minIndsAll, maxWhichLeg, minWhichLeg] = ...
     getLegReversals(legTrack, moveNotMove, legRevParams, legIDs)
@@ -42,25 +43,10 @@ function [maxIndsAll, minIndsAll, maxWhichLeg, minWhichLeg] = ...
     for i = 1:length(legIDs.ind)
         thisLegInd = legIDs.ind(i);
 
-        % get max ind for this leg
-        [~, maxPeakInd] = findpeaks(legTrack.srnfLegX(:,thisLegInd), ...
-            'MinPeakProminence', legRevParams.minProm, ...
-            'MinPeakDistance', legRevParams.minDist);
-        % remove all ind from when fly not moving
-        % logical, true when maxInd is also not moving
-        maxNotMovLog = ismember(maxPeakInd, moveNotMove.notMoveInd);
-        % remove all not moving maxInd
-        maxInds = maxPeakInd(~maxNotMovLog);
+        legXPos = legTrack.srnfLegX(:,thisLegInd);
 
-        % get min ind for this leg (find peaks in negative X pos)
-        [~, minPeakInd] = findpeaks(-1*legTrack.srnfLegX(:,thisLegInd), ...
-            'MinPeakProminence', legRevParams.minProm, ...
-            'MinPeakDistance', legRevParams.minDist);
-        % remove all ind from when fly not moving
-        % logical, true when maxInd is also not moving
-        minNotMovLog = ismember(minPeakInd, moveNotMove.notMoveInd);
-        % remove all not moving maxInd
-        minInds = minPeakInd(~minNotMovLog);
+        [maxInds, minInds] = getLegReversals_1Leg(legXPos, ...
+            moveNotMove.notMoveInd, legRevParams);
 
         % return values for this, concatenate into vector for all legs
         maxIndsAll = [maxIndsAll; maxInds];
