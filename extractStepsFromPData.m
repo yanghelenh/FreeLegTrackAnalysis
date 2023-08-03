@@ -21,6 +21,7 @@
 %
 % UPDATED:
 %   4/12/23 - HHY
+%   8/3/23 - HHY - update to extract phase and interpolated steps
 %
 function extractStepsFromPData(pDataPath, legRevParams)
 
@@ -115,10 +116,23 @@ function extractStepsFromPData(pDataPath, legRevParams)
         % step parameters during swing/stance
         [stanceStepParams, swingStepParams] = getStepParamsSwingStance(...
             legSteps);
+
+        % get phase, using method of fitting each half step
+        legPhase = getLegPhaseFromSteps(legSteps.stepInds, ...
+            legSteps.stepWhichLeg, legTrack.srnfLegX(:,legIDs.ind), ...
+            moveNotMove.legNotMoveBout);
+    
+        % get phase differences b/w legs
+        phaseDiffs = getLegPhaseDiffs(legPhase, legIDs, 'degrees');
+
+        % get interpolated step parameters
+        legStepsCont = getEnvelopeStepParams(legTrack, legSteps, ...
+            moveNotMove);
     
         % update pData file
         save(pDataFullPath, 'legSteps', 'stanceStepParams', ...
-            'swingStepParams', '-append');
+            'swingStepParams', 'legPhase', 'phaseDiffs', ...
+            'legStepsCont', '-append');
 
     end
 end
