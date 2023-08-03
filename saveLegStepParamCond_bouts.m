@@ -65,6 +65,10 @@
 %       legT - time points for legX and legY matrices, 0 at yaw vel peak
 %       numBouts - total number of bouts (is n for legX and legY, and max n
 %           for stepParam (if no NaNs)
+%       boutPeakVel - struct for velocity values at each bout peak
+%           yaw - vector of length numBouts for peak yaw velocity
+%           fwd - vector of length numBouts for peak forward velocity
+%           lat - vector of length numBouts for peak lateral velocity
 %       pDataFiles - struct of info on pData files
 %           names - name of each pData file with at least 1 valid step, as
 %               cell array
@@ -85,6 +89,7 @@
 %       turning bout (separate from max number of steps)
 %   6/14/23 - HHY - fix bug where for stepDirections, time points with no
 %       data points returned 0 for the mean and non NaN
+%   7/21/23 - HHY - add boutPeakVel to output
 %
 function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
     pDataPath, saveFilePath, saveFileName)
@@ -123,6 +128,10 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
         selStanceParams.(stepParamNames{i}) = [];
         selSwingParams.(stepParamNames{i}) = [];
     end
+
+    boutPeakVel.yaw = [];
+    boutPeakVel.fwd = [];
+    boutPeakVel.lat = [];
 
     pkSwingStance = [];
 
@@ -190,7 +199,6 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
         [leftPeakInd, leftStartInd, leftEndInd] = findCondYawVelPeaks(...
             bodytraj, cond, moveNotMove, false);
 
-        size(leftPeakInd)
 
         % check if this pData file contributes any turns
         % if not, skip and move to next pData file
@@ -212,6 +220,20 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
 
         % update counter
         countNumBouts = countNumBouts + thisNumBouts;
+
+        % get smoothed bodytraj values for peaks
+        boutPeakVel.yaw = [boutPeakVel.yaw; ...
+            bodytraj.angVelSmoS(rightPeakInd)];
+        boutPeakVel.yaw = [boutPeakVel.yaw; ...
+            bodytraj.angVelSmoS(leftPeakInd)];
+        boutPeakVel.fwd = [boutPeakVel.fwd; ...
+            bodytraj.fwdVelSmoS(rightPeakInd)];
+        boutPeakVel.fwd = [boutPeakVel.fwd; ...
+            bodytraj.fwdVelSmoS(leftPeakInd)];
+        boutPeakVel.lat = [boutPeakVel.lat; ...
+            bodytraj.latVelSmoS(rightPeakInd)];
+        boutPeakVel.lat = [boutPeakVel.lat; ...
+            bodytraj.latVelSmoS(leftPeakInd)];
 
         
         % get indices for steps aligned to bouts
@@ -534,5 +556,6 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
         'swingParamMeans', 'swingParamStd', 'swingParamSEM', ...
         'swingParamN', 'allLegX', 'allLegY', 'meanLegX', 'stdLegX', ...
         'SEMLegX', 'meanLegY', 'stdLegY', 'SEMLegY', 'legT', 'numBouts', ...
-        'pDataFiles', 'cond', 'maxNumSteps', 'legXYParams', '-v7.3');
+        'boutPeakVel', 'pDataFiles', 'cond', 'maxNumSteps', ...
+        'legXYParams', '-v7.3');
 end
