@@ -22,11 +22,19 @@
 %           specify the min and max duration of the turning bout for it to
 %           be included
 %       minYawThresh - minimum yaw velocity to define start and end of bout
+%   fwdVelCond - struct of conditions on forward velocity to apply to
+%     turning bout
+%       initVel - 2 element vector defining [min max] range of acceptable
+%           initial forward velocities (at bout start)
+%       change - 2 element vector defining [min max] range of acceptable
+%           changes in forward velocity, peak - start 
 %   maxNumSteps - number of steps to each side of peak to consider as part
 %       of bout (max bout length is this x2 + 1)
 %   legXYParams - struct of parameters for aligning leg X and Y positions
 %       maxDuration - time in seconds to consider on each side 
 %       interpFrameRate - frame rate to interpolate to
+%   pDataFNames - cell array of pData file names or [] if select through
+%       GUI
 %   pDataPath - full path to pData directory
 %   saveFilePath - directory in which to save output file
 %   saveFileName - name of output file, without .mat part
@@ -69,6 +77,14 @@
 %           yaw - vector of length numBouts for peak yaw velocity
 %           fwd - vector of length numBouts for peak forward velocity
 %           lat - vector of length numBouts for peak lateral velocity
+%       boutStartVel - struct for velocity values at each bout start
+%           yaw - vector of length numBouts for start yaw velocity
+%           fwd - vector of length numBouts for start forward velocity
+%           lat - vector of length numBouts for start lateral velocity
+%       boutEndVel - struct for velocity values at each bout end
+%           yaw - vector of length numBouts for end yaw velocity
+%           fwd - vector of length numBouts for end forward velocity
+%           lat - vector of length numBouts for end lateral velocity
 %       pDataFiles - struct of info on pData files
 %           names - name of each pData file with at least 1 valid step, as
 %               cell array
@@ -88,11 +104,13 @@
 %   6/9/23 - HHY - update to add condition for min and max duration of
 %       turning bout (separate from max number of steps)
 %   6/14/23 - HHY - fix bug where for stepDirections, time points with no
-%       data points returned 0 for the mean and non NaN
+%       data points returned 0 for the mean and not NaN
 %   7/21/23 - HHY - add boutPeakVel to output
+%   8/16/23 - HHY - update to allow conditioning on initial and change in
+%       forward velocity. Also, return boutStartVel and boutEndVel
 %
-function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
-    pDataPath, saveFilePath, saveFileName)
+function saveLegStepParamCond_bouts(cond, fwdVelCond, maxNumSteps, ...
+    legXYParams, pDataFNames, pDataPath, saveFilePath, saveFileName)
 
     % names of all step parameters to save
     stepParamNames = {'stepLengths', 'stepXLengths',...
@@ -108,8 +126,12 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
     circStepParams = {'stepDirections'};
 
     % prompt user to select pData files
-    [pDataFNames, pDataDirPath] = uigetfile('*.mat', ...
-        'Select pData files', pDataPath, 'MultiSelect', 'on');
+    if isempty(pDataFNames)
+        [pDataFNames, pDataDirPath] = uigetfile('*.mat', ...
+            'Select pData files', pDataPath, 'MultiSelect', 'on');
+    else
+        pDataDirPath = pDataPath;
+    end
     
     % if only 1 pData file selected, not cell array; make sure loop still
     %  works 
@@ -132,6 +154,14 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
     boutPeakVel.yaw = [];
     boutPeakVel.fwd = [];
     boutPeakVel.lat = [];
+
+    boutStartVel.yaw = [];
+    boutStartVel.fwd = [];
+    boutStartVel.lat = [];
+
+    boutEndVel.yaw = [];
+    boutEndVel.fwd = [];
+    boutEndVel.lat = [];
 
     pkSwingStance = [];
 
@@ -194,10 +224,10 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
 
         % get yaw velocity peaks for right turns
         [rightPeakInd, rightStartInd, rightEndInd] = findCondYawVelPeaks(...
-            bodytraj, cond, moveNotMove, true);
+            bodytraj, cond, fwdVelCond, moveNotMove, true);
         % get yaw velocity peaks for left turns
         [leftPeakInd, leftStartInd, leftEndInd] = findCondYawVelPeaks(...
-            bodytraj, cond, moveNotMove, false);
+            bodytraj, cond, fwdVelCond, moveNotMove, false);
 
 
         % check if this pData file contributes any turns
@@ -234,6 +264,34 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
             bodytraj.latVelSmoS(rightPeakInd)];
         boutPeakVel.lat = [boutPeakVel.lat; ...
             bodytraj.latVelSmoS(leftPeakInd)];
+
+        % get smoothed bodytraj values for bout starts
+        boutStartVel.yaw = [boutStartVel.yaw; ...
+            bodytraj.angVelSmoS(rightStartInd)];
+        boutStartVel.yaw = [boutStartVel.yaw; ...
+            bodytraj.angVelSmoS(leftStartInd)];
+        boutStartVel.fwd = [boutStartVel.fwd; ...
+            bodytraj.fwdVelSmoS(rightStartInd)];
+        boutStartVel.fwd = [boutStartVel.fwd; ...
+            bodytraj.fwdVelSmoS(leftStartInd)];
+        boutStartVel.lat = [boutStartVel.lat; ...
+            bodytraj.latVelSmoS(rightStartInd)];
+        boutStartVel.lat = [boutStartVel.lat; ...
+            bodytraj.latVelSmoS(leftStartInd)];
+
+        % get smoothed bodytraj values for bout ends
+        boutEndVel.yaw = [boutEndVel.yaw; ...
+            bodytraj.angVelSmoS(rightEndInd)];
+        boutEndVel.yaw = [boutEndVel.yaw; ...
+            bodytraj.angVelSmoS(leftEndInd)];
+        boutEndVel.fwd = [boutEndVel.fwd; ...
+            bodytraj.fwdVelSmoS(rightEndInd)];
+        boutEndVel.fwd = [boutEndVel.fwd; ...
+            bodytraj.fwdVelSmoS(leftEndInd)];
+        boutEndVel.lat = [boutEndVel.lat; ...
+            bodytraj.latVelSmoS(rightEndInd)];
+        boutEndVel.lat = [boutEndVel.lat; ...
+            bodytraj.latVelSmoS(leftEndInd)];
 
         
         % get indices for steps aligned to bouts
@@ -556,6 +614,6 @@ function saveLegStepParamCond_bouts(cond, maxNumSteps, legXYParams, ...
         'swingParamMeans', 'swingParamStd', 'swingParamSEM', ...
         'swingParamN', 'allLegX', 'allLegY', 'meanLegX', 'stdLegX', ...
         'SEMLegX', 'meanLegY', 'stdLegY', 'SEMLegY', 'legT', 'numBouts', ...
-        'boutPeakVel', 'pDataFiles', 'cond', 'maxNumSteps', ...
-        'legXYParams', '-v7.3');
+        'boutPeakVel', 'boutStartVel', 'boutEndVel', 'pDataFiles', ...
+        'cond', 'fwdVelCond', 'maxNumSteps', 'legXYParams', '-v7.3');
 end

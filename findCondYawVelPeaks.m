@@ -10,6 +10,7 @@
 %   cond - pass from saveLegStepParamCond_bouts()
 %   moveNotMove - pData output struct
 %   rightTurn - boolean for whether to extract right turns (false = left)
+%   fwdVelCond - pass from saveLegStepParamCond_bouts()
 %
 % OUTPUTS:
 %   yawVelPeakInd - vector of indices of bodytraj corresponding to yaw
@@ -25,9 +26,11 @@
 %   6/8/23 - HHY - slight bug fix to only invert velocities for left turns
 %       (not speeds)
 %   6/9/23 - HHY - update to allow conditioning on bout duration
+%   8/16/23 - HHY - update to allow conditioning on initial and change in
+%       forward velocity
 %
 function [yawVelPeakInd, boutStartInd, boutEndInd] = findCondYawVelPeaks(...
-    bodytraj, cond, moveNotMove, rightTurn)
+    bodytraj, cond, fwdVelCond, moveNotMove, rightTurn)
 
     % trial end exclusion
     % exclude any peaks that are within x frames of trial end
@@ -182,6 +185,34 @@ function [yawVelPeakInd, boutStartInd, boutEndInd] = findCondYawVelPeaks(...
     pkInds(rmInd) = [];
     pkStartInd(rmInd) = [];
     pkEndInd(rmInd) = [];
+
+    % loop through all peaks and check that the bout meets the forward
+    %  velocity requirements
+    % initialize to keep track of peaks to remove
+    rmInd = [];
+    for i = 1:length(pkInds)
+        % forward velocity at start for this bout
+        thisBoutInitFwdVel = bodytraj.fwdVelSmoS(pkStartInd(i));
+        % forward velocity at yaw peak for this bout
+        thisBoutPeakFwdVel = bodytraj.fwdVelSmoS(pkInds(i));
+
+        % change in forward velocity
+        thisBoutChangeFwdVel = thisBoutPeakFwdVel - thisBoutInitFwdVel;
+
+        % if this bout doesn't meet forward velocity requirements, flag
+        %  this index for deletion
+        if ((thisBoutInitFwdVel < fwdVelCond.initVel(1)) || ...
+                (thisBoutInitFwdVel > fwdVelCond.initVel(2)) || ...
+                (thisBoutChangeFwdVel < fwdVelCond.change(1)) || ...
+                (thisBoutChangeFwdVel > fwdVelCond.change(2)))
+            rmInd = [rmInd i];
+        end
+    end
+    % remove any bouts that don't meet the forward velocity criteria
+    pkInds(rmInd) = [];
+    pkStartInd(rmInd) = [];
+    pkEndInd(rmInd) = [];
+
 
     % outputs
     yawVelPeakInd = pkInds;

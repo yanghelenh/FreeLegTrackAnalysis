@@ -116,7 +116,7 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
         % load data - with appropriate error and phase
         if (semError && swingOrStance) % SEM and Stance
             load(outputFullPath, 'stanceParamMeans', 'stanceParamSEM', ...
-                'stanceParamN', 'maxNumSteps', 'cond');
+                'stanceParamN', 'maxNumSteps', 'cond', 'fwdVelCond');
 
             % if circular parameter and stance, wrap to 360 for plotting
             if(any(strcmpi(whichParam, circStepParams)))
@@ -129,14 +129,14 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
             numBouts{i} = stanceParamN.(whichParam);
         elseif (semError && ~swingOrStance) % SEM and Swing
             load(outputFullPath, 'swingParamMeans', 'swingParamSEM', ...
-                'swingParamN', 'maxNumSteps', 'cond');
+                'swingParamN', 'maxNumSteps', 'cond', 'fwdVelCond');
 
             allMeans{i} = swingParamMeans.(whichParam);
             allErrs{i} = swingParamSEM.(whichParam);
             numBouts{i} = swingParamN.(whichParam);
         elseif (~semError && swingOrStance) % std dev and stance
             load(outputFullPath, 'stanceParamMeans', 'stanceParamStd', ...
-                'stanceParamN', 'maxNumSteps', 'cond');
+                'stanceParamN', 'maxNumSteps', 'cond', 'fwdVelCond');
 
             % if circular parameter and stance, wrap to 360 for plotting
             if(any(strcmpi(whichParam, circStepParams)))
@@ -149,7 +149,7 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
             numBouts{i} = stanceParamN.(whichParam);
         elseif (~semError && ~swingOrStance) % std dev and swing
             load(outputFullPath, 'swingParamMeans', 'swingParamStd', ...
-                'swingParamN', 'maxNumSteps', 'cond');
+                'swingParamN', 'maxNumSteps', 'cond', 'fwdVelCond');
 
             allMeans{i} = swingParamMeans.(whichParam);
             allErrs{i} = swingParamStd.(whichParam);
@@ -165,6 +165,10 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
                 thisLegendStr = [thisLegendStr ', '];
             end
         end
+        % add fwdVelCond, change in forward vel, to legend string
+        fwdCondStr = sprintf('\\Delta Fwd Vel %.3f-%.3f',...
+            fwdVelCond.change(1), fwdVelCond.change(2));
+        thisLegendStr = [thisLegendStr ', ' fwdCondStr];
         legendStr{i} = thisLegendStr;
     end
 
@@ -276,7 +280,27 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
         end
 
         % axis scale and label
-%         ylim(yScale);
+
+        % for AEP
+%         if (subInd(i)==1 || subInd(i)==2)
+%             ylim([-0.9 -0.5]);
+%         elseif (subInd(i)==3 || subInd(i)==4)
+%             ylim([-0.3 0.1]);
+%         else
+%             ylim([0.15 0.55]);
+%         end
+
+        % for PEP
+%         if (subInd(i)==1 || subInd(i)==2)
+%             ylim([-0.6 -0.2]);
+%         elseif (subInd(i)==3 || subInd(i)==4)
+%             ylim([0 0.4]);
+%         else
+%             ylim([0.45 0.85]);
+%         end
+
+        ylim(yScale);
+
         xScale = xlim;
         xScale(1) = xScale(1) - (0.1 * (stepTPts(end)-stepTPts(1)));
         xScale(2) = xScale(2) + (0.1 * (stepTPts(end)-stepTPts(1)));
