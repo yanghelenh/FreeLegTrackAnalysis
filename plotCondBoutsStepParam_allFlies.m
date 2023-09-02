@@ -18,6 +18,7 @@
 %   datDir - directory with output files
 %   yScale - y scale for plots, as [min max]
 %   semError - boolean for whether to plot SEM; if false, plots std dev
+%   numSteps - number of steps relative to yaw peak to plot
 %   ref - boolean for whether to plot reference
 %
 % OUTPUTS:
@@ -31,9 +32,10 @@
 %   6/6/23 - HHY - for reference file, make sure stepDirections mean and
 %       std use circular statistics
 %   6/7/23 - HHY - remove outliers from reference file
+%   8/27/23 - HHY - modify so plotting of single step works
 %
 function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
-    datDir, yScale, semError, ref)
+    datDir, yScale, semError, numSteps, ref)
 
     % legs to subplot indices
     % puts left legs on left, and front legs on top
@@ -66,7 +68,12 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
     % legend depends on if there's reference (+3 for ref line and error
     %  lines)
     if(ref)
-        legendStrLegs = cell(numFiles+3, 6);
+        % if we're plotting one step
+        if (numSteps == 1)
+            legendStrLegs = cell(numFiles+1, 6);
+        else
+            legendStrLegs = cell(numFiles+3, 6);
+        end
     else
         legendStrLegs = cell(numFiles, 6);
     end
@@ -239,22 +246,31 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
         % if reference, plot as solid line for mean and dotted lines for
         %  error around mean
         if(ref)
-            % plot mean line
-            plot(stepTPts, refMeansRep(i,:), 'LineWidth',1, ...
-                'Color', 'black');
-            % plot error lines
-            plot(stepTPts, refErrsPosRep(i,:), 'LineWidth',1, ...
-                'Color', 'black', 'LineStyle',':');
-            plot(stepTPts, refErrsNegRep(i,:), 'LineWidth',1, ...
-                'Color', 'black', 'LineStyle',':');
+            % different plotting for 1 step vs multiple
+            if (numSteps == 1)
+                errorbar(stepTPts, refMeansRep(i,:), refErrs(i,:), ...
+                    'Marker', '_', 'LineWidth',1, 'CapSize', 0, 'Color', 'k');
+            else
+                % plot mean line
+                plot(stepTPts, refMeansRep(i,:), 'LineWidth',1, ...
+                    'Color', 'black');
+                % plot error lines
+                plot(stepTPts, refErrsPosRep(i,:), 'LineWidth',1, ...
+                    'Color', 'black', 'LineStyle',':');
+                plot(stepTPts, refErrsNegRep(i,:), 'LineWidth',1, ...
+                    'Color', 'black', 'LineStyle',':');
+            end
 
             % legend
             thisLegendStr = ['Reference; n = ' num2str(refN(i))];
     
             legendStrLegs{1,i} = thisLegendStr;
-            % omit legend for error lines
-            legendStrLegs{2,i} = '';
-            legendStrLegs{3,i} = '';
+
+            if (numSteps > 1)
+                % omit legend for error lines
+                legendStrLegs{2,i} = '';
+                legendStrLegs{3,i} = '';
+            end
     
             hold on;
         end
@@ -273,7 +289,11 @@ function plotCondBoutsStepParam_allFlies(whichParam, swingOrStance, ...
 
             % legend depends on if there's reference
             if(ref)
-                legendStrLegs{j+3,i} = thisLegendStr;
+                if (numSteps == 1)
+                    legendStrLegs{j+1,i} = thisLegendStr;
+                else
+                    legendStrLegs{j+3,i} = thisLegendStr;
+                end
             else
                 legendStrLegs{j,i} = thisLegendStr;
             end
