@@ -59,6 +59,7 @@ xlabel('Time (s)');
 ylabel('Forward velocity (mm/s)');
 xlim([newT(selInd(1)) newT(selInd(end))]);
 ylim([5 20]);
+% ylim([10 25]);
 
 % compute vectors for quiver plot, angle is heading direction and length of
 %  arrow is proportional to angular velocity
@@ -77,8 +78,8 @@ figure;
 %     o);
 % hold on;
 scatter(newX(selInd)*1000,newY(selInd)*1000, [], ...
-    linspace(1,10,length(selInd)), 'filled');
-
+    linspace(0,0.3,length(selInd)), 'filled');
+colorbar
 axis('equal');
 xlim([571.5 577.5])
 xlim([607 613])

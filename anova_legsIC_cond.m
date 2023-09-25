@@ -133,7 +133,7 @@ function anova_legsIC_cond(datDir, whichParam, whichPhase, saveName, saveDir)
 
     % multiple comparison tests
     [multCmpResults,~,~,gNames] = multcompare(stats, 'Dimension',[1 2], ...
-        'CType', 'bonferroni');
+        'CType', 'tukey-kramer');
 
     % save output
     saveFullPath = [saveDir filesep saveName '.mat'];

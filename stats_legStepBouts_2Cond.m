@@ -1,4 +1,4 @@
-whichParam = 'stepDirections';
+whichParam = 'stepAEPX';
 whichPhase = 'stance';
 
 
@@ -35,19 +35,19 @@ whichPhase = 'stance';
 
     allP = zeros(6,1);
 
-%     for i = 1:6
-%         [~,allP(i)] = ttest2(paramVals{1}(i,:), paramVals{2}(i,:));
-%     end
-
-    % for circular parameter
     for i = 1:6
-        paramVal1 = paramVals{1}(i,:);
-        paramVal1(isnan(paramVal1)) = [];
-        paramVal1 = deg2rad(paramVal1);
-
-        paramVal2 = paramVals{2}(i,:);
-        paramVal2(isnan(paramVal2)) = [];
-        paramVal2 = deg2rad(paramVal2);
-
-        [allP(i), ~] = circ_wwtest(paramVal1, paramVal2);
+        [~,allP(i)] = ttest2(paramVals{1}(i,:), paramVals{2}(i,:));
     end
+
+%     % for circular parameter
+%     for i = 1:6
+%         paramVal1 = paramVals{1}(i,:);
+%         paramVal1(isnan(paramVal1)) = [];
+%         paramVal1 = deg2rad(paramVal1);
+% 
+%         paramVal2 = paramVals{2}(i,:);
+%         paramVal2(isnan(paramVal2)) = [];
+%         paramVal2 = deg2rad(paramVal2);
+% 
+%         [allP(i), ~] = circ_wwtest(paramVal1, paramVal2);
+%     end
