@@ -63,11 +63,15 @@ function plotContLegStepParamCond_bouts_ipsiContra(whichParam, datDir, ...
         hold on;
 
         % plot
-        errorbar(legT', paramMean(:,i), paramErr(:,i), ...
-            'Marker', '.','LineWidth',1, 'CapSize', 0, 'Color', c(1,:));
+%         errorbar(legT', paramMean(:,i), paramErr(:,i), ...
+%             'Marker', '.','LineWidth',1, 'CapSize', 0, 'Color', c(1,:));
 
-        errorbar(legT', paramMean(:,i+3), paramErr(:,i+3), ...
-            'Marker', '.','LineWidth',1, 'CapSize', 0, 'Color', c(2,:));
+        plot_err_patch_v2(legT',paramMean(:,i),paramErr(:,i),c(1,:) * 0.8,c(1,:));
+
+%         errorbar(legT', paramMean(:,i+3), paramErr(:,i+3), ...
+%             'Marker', '.','LineWidth',1, 'CapSize', 0, 'Color', c(2,:));
+
+        plot_err_patch_v2(legT',paramMean(:,i+3),paramErr(:,i+3),c(2,:) * 0.8,c(2,:));
 
         % axis scale and label
 
@@ -110,7 +114,7 @@ function plotContLegStepParamCond_bouts_ipsiContra(whichParam, datDir, ...
         end
 
         % legend
-        legend({'Ipsi', 'Contra'});
+        legend({'','Ipsi', '','Contra'});
     end
 
     sgtitle(whichParam);
