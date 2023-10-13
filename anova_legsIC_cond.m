@@ -114,16 +114,16 @@ function anova_legsIC_cond(datDir, whichParam, whichPhase, saveName, saveDir)
         numSamps = length(thisParamVals);
         
         % get vector of ipsi/contra 
-        thisLegIC = [repmat("Ipsi",numSamps/2,1); ...
-            repmat("Contra", numSamps/2, 1)];
+%         thisLegIC = [repmat("Ipsi",numSamps/2,1); ...
+%             repmat("Contra", numSamps/2, 1)];
 
-        thisNeuromere = [repmat("Front",numSamps/6,1); repmat("Mid", numSamps/6, 1);
-            repmat("Hind", numSamps/6, 1); repmat("Front", numSamps/6, 1);
-            repmat("Mid", numSamps/6, 1); repmat("Hind", numSamps/6, 1);];
+%         thisNeuromere = [repmat("Front",numSamps/6,1); repmat("Mid", numSamps/6, 1);
+%             repmat("Hind", numSamps/6, 1); repmat("Front", numSamps/6, 1);
+%             repmat("Mid", numSamps/6, 1); repmat("Hind", numSamps/6, 1);];
 
-%         thisLegIC = [repmat("R1",numSamps/6,1); repmat("R2", numSamps/6, 1);
-%             repmat("R3", numSamps/6, 1); repmat("L1", numSamps/6, 1);
-%             repmat("L2", numSamps/6, 1); repmat("L3", numSamps/6, 1);];
+        thisLegIC = [repmat("R1",numSamps/6,1); repmat("R2", numSamps/6, 1);
+            repmat("R3", numSamps/6, 1); repmat("L1", numSamps/6, 1);
+            repmat("L2", numSamps/6, 1); repmat("L3", numSamps/6, 1);];
         % append
         legIC = [legIC; thisLegIC];
         neuromere = [neuromere; thisNeuromere];
@@ -135,7 +135,9 @@ function anova_legsIC_cond(datDir, whichParam, whichPhase, saveName, saveDir)
 
 
     % perform unbalanced ANOVA
-    [p, tbl, stats] = anovan(paramVal, {legIC, neuromere, cond}, ...
+%     [p, tbl, stats] = anovan(paramVal, {legIC, neuromere, cond}, ...
+%         'model','interaction');
+    [p, tbl, stats] = anovan(paramVal, {legIC, cond}, ...
         'model','interaction');
 
     % multiple comparison tests

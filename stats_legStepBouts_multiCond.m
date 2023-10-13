@@ -72,7 +72,7 @@ whichPhase = 'stance';
             allParamCond = [allParamCond; repmat(j,length(thisParamVal),1)];
         end
 
-        [allP(i), allStats{i}] = circ_wwtest(deg2rad(allParamVals),allParamCond);
+        [allP(i), allStats{i}] = circ_wwtest(allParamVals,allParamCond);
 %         [allP(i),~,allStats{i}] = anova1(allParamVals,allParamCond);
 % 
 %         allC{i} = multcompare(allStats{i});
