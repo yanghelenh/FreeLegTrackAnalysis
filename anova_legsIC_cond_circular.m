@@ -1,24 +1,6 @@
-% anova_legsIC_cond.m
-%
-% Function to compute 2-way ANOVA, leg identity as
-%  one factor and the condition identity as the other factor (select 2 or
-%  more output files, each represents one condition).
-% Also performs multiple comparisons
-% Runs on output files of saveLegStepParamCond_bouts()
-%
-% INPUTS:
-%
-% OUTPUTS:
-%
-% CREATED: 9/12/23 - HHY
-%
-% UPDATED:
-%   9/12/23 - HHY
-%
-function anova_legsIC_cond(datDir, whichParam, whichPhase, calcDiff, ...
-    saveName, saveDir)
+% quick script mod of anova_legsIC_cond , for circular parameters   
 
-    circStepParams = {'stepDirections'};
+circStepParams = {'stepDirections'};
 
     legNames = {"R1", "R2", "R3", "L1", "L2", "L3"};
     
@@ -113,20 +95,29 @@ function anova_legsIC_cond(datDir, whichParam, whichPhase, calcDiff, ...
         % reshape as column vector, with first half as ipsi, second as contra
         thisParamVals = squeeze(thisParamVals);
         for j = 1:numLegs
-            if calcDiff
-                thisParamVals(j,:) = thisParamVals(j,:) - refMeans(j);
+            if ~(any(strcmpi(whichParam, circStepParams)))
+                if calcDiff
+                    thisParamVals(j,:) = thisParamVals(j,:) - refMeans(j);
+                else
+                    thisParamVals(j,:) = thisParamVals(j,:);
+                end
             else
-                thisParamVals(j,:) = thisParamVals(j,:);
+                if calcDiff
+                    thisParamVals(j,:) = deg2rad(wrapTo180(thisParamVals(j,:))) - refMeans(j);
+                else
+                    thisParamVals(j,:) = deg2rad(wrapTo180(thisParamVals(j,:)));
+                end
             end
+
         end
 
         thisParamVals = thisParamVals';
         thisParamVals = thisParamVals(:);
 
-        % wrap to 360 for stance step directions 
-        if any(strcmpi(whichParam,circStepParams)) && strcmpi(whichPhase,'stance')
-            thisParamVals = wrapTo360(thisParamVals);
-        end
+%         % wrap to 360 for stance step directions 
+%         if any(strcmpi(whichParam,circStepParams)) && strcmpi(whichPhase,'stance')
+%             thisParamVals = wrapTo360(thisParamVals);
+%         end
 
         % append to output
         paramVal = [paramVal; thisParamVals];
@@ -158,17 +149,35 @@ function anova_legsIC_cond(datDir, whichParam, whichPhase, calcDiff, ...
     % perform unbalanced ANOVA
 %     [p, tbl, stats] = anovan(paramVal, {legIC, neuromere, cond}, ...
 %         'model','interaction');
-    [p, tbl, stats] = anovan(paramVal, {legIC, cond}, ...
-        'model','interaction');
+    if ~(any(strcmpi(whichParam, circStepParams)))
+        [p, tbl, stats] = anovan(paramVal, {legIC, cond}, ...
+            'model','interaction');
+    
+        % multiple comparison tests
+        [multCmpResults,~,~,gNames] = multcompare(stats, 'Dimension',[1 2], ...
+            'CType', 'tukey-kramer');
+    else
+        nanLog = isnan(paramVal);
+        paramVal(nanLog) = [];
+        legIC(nanLog) = [];
+        cond(nanLog) = [];
 
-    % multiple comparison tests
-    [multCmpResults,~,~,gNames] = multcompare(stats, 'Dimension',[1 2], ...
-        'CType', 'tukey-kramer');
+        [p, stats] = circ_hktest(paramVal, legIC, cond, 1, {'Leg','Cond'});
 
-    % save output
-    saveFullPath = [saveDir filesep saveName '.mat'];
+    end
 
-    save(saveFullPath, 'whichParam', 'whichPhase', 'p', 'tbl', 'stats', ...
-        'multCmpResults', 'gNames');
+    % post-hoc tests
+    allCondNames = unique(cond);
+    allCondNames(1) = [];
 
-end
+    whichLeg = 3;
+    whichCond = 1;
+
+    thisCondLog = strcmpi(legIC,legNames{whichLeg}) & strcmpi(cond,allCondNames(whichCond));
+    condVal = paramVal(thisCondLog);
+
+    thisRefLog = strcmpi(legIC,legNames{whichLeg}) & strcmpi(cond,"Ref");
+    refVal = paramVal(thisRefLog);
+
+    [p, stats] = circ_wwtest(refVal, condVal);
+
